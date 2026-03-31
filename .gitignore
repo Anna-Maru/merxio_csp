@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# Alembic
+alembic/versions/*.pyc
+
+# Database
+*.sqlite3
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Mypy / Ruff / другие тулзы
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+
+# Static / build
+dist/
+build/
