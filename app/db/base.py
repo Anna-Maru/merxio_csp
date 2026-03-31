@@ -22,3 +22,10 @@ class Base(DeclarativeBase):
 async def get_db() -> AsyncSession:
     async with async_session_maker() as session:
         yield session
+
+
+# Импорты нужны для Alembic — не удалять!
+from app.models.user import User        # noqa: F401, E402
+from app.models.product import Product  # noqa: F401, E402
+from app.models.cart import Cart, CartItem  # noqa: F401, E402
+from app.models.order import Order, OrderItem # noqa: F401, E402
