@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Numeric, String, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 
@@ -25,9 +25,7 @@ class Order(Base):
         Enum(OrderStatus), default=OrderStatus.pending, nullable=False
     )
     total_price: Mapped[int] = mapped_column(Integer, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )
