@@ -6,7 +6,10 @@ from app.db.base import get_db
 from app.models.user import User
 from app.schemas.order import OrderOut, OrderStatusUpdate
 from app.services.order_service import (
-    create_order, get_user_orders, get_order_by_id, update_order_status,
+    create_order,
+    get_user_orders,
+    get_order_by_id,
+    update_order_status,
 )
 
 router = APIRouter(prefix="/orders", tags=["orders"])

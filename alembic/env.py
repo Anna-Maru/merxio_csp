@@ -9,9 +9,9 @@ from app.core.config import settings
 from app.db.base import Base
 
 # Импорт всех моделей чтобы Alembic их видел
-import app.models.user      # noqa: F401
-import app.models.product   # noqa: F401
-import app.models.cart      # noqa: F401
+import app.models.user  # noqa: F401
+import app.models.product  # noqa: F401
+import app.models.cart  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

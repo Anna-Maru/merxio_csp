@@ -6,7 +6,11 @@ from app.db.base import get_db
 from app.models.user import User
 from app.schemas.product import ProductCreate, ProductUpdate, ProductOut
 from app.services.product_service import (
-    get_products, get_product_by_id, create_product, update_product, delete_product
+    get_products,
+    get_product_by_id,
+    create_product,
+    update_product,
+    delete_product,
 )
 
 router = APIRouter(prefix="/products", tags=["products"])

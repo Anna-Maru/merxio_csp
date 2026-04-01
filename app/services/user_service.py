@@ -8,9 +8,7 @@ from app.schemas.user import UserRegister
 
 async def register_user(data: UserRegister, db: AsyncSession) -> User:
     result = await db.execute(
-        select(User).where(
-            or_(User.email == data.email, User.phone == data.phone)
-        )
+        select(User).where(or_(User.email == data.email, User.phone == data.phone))
     )
     existing = result.scalar_one_or_none()
     if existing:
@@ -32,9 +30,7 @@ async def register_user(data: UserRegister, db: AsyncSession) -> User:
 
 async def login_user(login: str, password: str, db: AsyncSession) -> str:
     result = await db.execute(
-        select(User).where(
-            or_(User.email == login, User.phone == login)
-        )
+        select(User).where(or_(User.email == login, User.phone == login))
     )
     user = result.scalar_one_or_none()
     if not user or not verify_password(password, user.hashed_password):

@@ -6,8 +6,12 @@ from app.db.base import get_db
 from app.models.user import User
 from app.schemas.cart import CartItemAdd, CartItemUpdate, CartOut
 from app.services.cart_service import (
-    get_or_create_cart, add_items, update_item,
-    remove_item, clear_cart, calc_total,
+    get_or_create_cart,
+    add_items,
+    update_item,
+    remove_item,
+    clear_cart,
+    calc_total,
 )
 
 router = APIRouter(prefix="/cart", tags=["cart"])

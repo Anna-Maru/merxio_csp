@@ -25,13 +25,15 @@ async def create_order(user_id: int, db: AsyncSession) -> Order:
     await db.flush()
 
     for item in cart.items:
-        db.add(OrderItem(
-            order_id=order.id,
-            product_id=item.product_id,
-            product_name=item.product.name,
-            price_at_order=item.product.price,
-            quantity=item.quantity,
-        ))
+        db.add(
+            OrderItem(
+                order_id=order.id,
+                product_id=item.product_id,
+                product_name=item.product.name,
+                price_at_order=item.product.price,
+                quantity=item.quantity,
+            )
+        )
         await db.delete(item)
 
     await db.commit()
@@ -41,9 +43,7 @@ async def create_order(user_id: int, db: AsyncSession) -> Order:
 
 async def get_order_by_id(order_id: int, db: AsyncSession) -> Order:
     result = await db.execute(
-        select(Order)
-        .where(Order.id == order_id)
-        .options(selectinload(Order.items))
+        select(Order).where(Order.id == order_id).options(selectinload(Order.items))
     )
     order = result.scalar_one_or_none()
     if not order:

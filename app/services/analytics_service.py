@@ -40,9 +40,9 @@ async def get_top_products(db: AsyncSession, limit: int = 10) -> list[dict]:
             OrderItem.product_name,
             OrderItem.product_id,
             func.sum(OrderItem.quantity).label("total_qty"),
-            func.sum(
-                OrderItem.price_at_order * OrderItem.quantity
-            ).label("total_revenue"),
+            func.sum(OrderItem.price_at_order * OrderItem.quantity).label(
+                "total_revenue"
+            ),
         )
         .join(Order, Order.id == OrderItem.order_id)
         .where(Order.status != OrderStatus.cancelled)
@@ -67,9 +67,9 @@ async def get_sales_by_category(db: AsyncSession) -> list[dict]:
         select(
             Product.category,
             func.sum(OrderItem.quantity).label("total_qty"),
-            func.sum(
-                OrderItem.price_at_order * OrderItem.quantity
-            ).label("total_revenue"),
+            func.sum(OrderItem.price_at_order * OrderItem.quantity).label(
+                "total_revenue"
+            ),
         )
         .join(Product, Product.id == OrderItem.product_id)
         .join(Order, Order.id == OrderItem.order_id)

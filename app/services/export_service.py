@@ -23,9 +23,7 @@ def export_xlsx(
         pd.DataFrame(categories).to_excel(
             writer, sheet_name="По категориям", index=False
         )
-        pd.DataFrame(dynamics).to_excel(
-            writer, sheet_name="Динамика", index=False
-        )
+        pd.DataFrame(dynamics).to_excel(writer, sheet_name="Динамика", index=False)
     buffer.seek(0)
     return buffer
 
@@ -52,12 +50,21 @@ def export_pdf(
         ["Средний чек", str(summary["avg_check"])],
     ]
     t = Table(summary_data, colWidths=[200, 200])
-    t.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1D9E75")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F1EFE8")]),
-    ]))
+    t.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1D9E75")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                (
+                    "ROWBACKGROUNDS",
+                    (0, 1),
+                    (-1, -1),
+                    [colors.white, colors.HexColor("#F1EFE8")],
+                ),
+            ]
+        )
+    )
     elements.append(t)
     elements.append(Spacer(1, 16))
 
@@ -67,12 +74,21 @@ def export_pdf(
         for r in top_products
     ]
     t2 = Table(top_data, colWidths=[250, 80, 100])
-    t2.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1D9E75")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F1EFE8")]),
-    ]))
+    t2.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1D9E75")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                (
+                    "ROWBACKGROUNDS",
+                    (0, 1),
+                    (-1, -1),
+                    [colors.white, colors.HexColor("#F1EFE8")],
+                ),
+            ]
+        )
+    )
     elements.append(t2)
 
     doc.build(elements)

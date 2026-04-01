@@ -7,8 +7,11 @@ from app.core.dependencies import get_admin_user
 from app.db.base import get_db
 from app.models.user import User
 from app.services.analytics_service import (
-    get_summary, get_top_products,
-    get_sales_by_category, get_sales_dynamics, get_new_users,
+    get_summary,
+    get_top_products,
+    get_sales_by_category,
+    get_sales_dynamics,
+    get_new_users,
 )
 from app.services.export_service import export_xlsx, export_pdf
 

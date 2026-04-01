@@ -67,4 +67,3 @@ async def delete_product(product_id: int, db: AsyncSession) -> None:
     product = await get_product_by_id(product_id, db)
     await db.delete(product)
     await db.commit()
-    

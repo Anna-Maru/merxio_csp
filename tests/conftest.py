@@ -44,38 +44,48 @@ async def client():
 
 @pytest_asyncio.fixture
 async def registered_user(client):
-    response = await client.post("/auth/register", json={
-        "full_name": "Test User",
-        "email": "test@example.com",
-        "phone": "+71234567890",
-        "password": "TestPass!",
-        "password_confirm": "TestPass!",
-    })
+    response = await client.post(
+        "/auth/register",
+        json={
+            "full_name": "Test User",
+            "email": "test@example.com",
+            "phone": "+71234567890",
+            "password": "TestPass!",
+            "password_confirm": "TestPass!",
+        },
+    )
     return response.json()
 
 
 @pytest_asyncio.fixture
 async def auth_headers(client, registered_user):
-    response = await client.post("/auth/login", json={
-        "login": "test@example.com",
-        "password": "TestPass!",
-    })
+    response = await client.post(
+        "/auth/login",
+        json={
+            "login": "test@example.com",
+            "password": "TestPass!",
+        },
+    )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
 
 @pytest_asyncio.fixture
 async def admin_headers(client):
-    await client.post("/auth/register", json={
-        "full_name": "Admin User",
-        "email": "admin@example.com",
-        "phone": "+79999999999",
-        "password": "AdminPass!",
-        "password_confirm": "AdminPass!",
-    })
+    await client.post(
+        "/auth/register",
+        json={
+            "full_name": "Admin User",
+            "email": "admin@example.com",
+            "phone": "+79999999999",
+            "password": "AdminPass!",
+            "password_confirm": "AdminPass!",
+        },
+    )
     async with async_session_test() as session:
         from sqlalchemy import select
         from app.models.user import User
+
         result = await session.execute(
             select(User).where(User.email == "admin@example.com")
         )
@@ -83,20 +93,27 @@ async def admin_headers(client):
         user.is_admin = True
         await session.commit()
 
-    response = await client.post("/auth/login", json={
-        "login": "admin@example.com",
-        "password": "AdminPass!",
-    })
+    response = await client.post(
+        "/auth/login",
+        json={
+            "login": "admin@example.com",
+            "password": "AdminPass!",
+        },
+    )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
 
 @pytest_asyncio.fixture
 async def product(client, admin_headers):
-    response = await client.post("/products/", json={
-        "name": "Test Product",
-        "description": "Test description",
-        "price": 1000,
-        "category": "Electronics",
-    }, headers=admin_headers)
+    response = await client.post(
+        "/products/",
+        json={
+            "name": "Test Product",
+            "description": "Test description",
+            "price": 1000,
+            "category": "Electronics",
+        },
+        headers=admin_headers,
+    )
     return response.json()
