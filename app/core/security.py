@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, timedelta
 
-from jose import JWTError, jwt
+import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
@@ -22,12 +22,6 @@ def validate_password(password: str) -> str:
         raise ValueError("Пароль должен содержать минимум 8 символов")
     if not re.search(r"[A-Z]", password):
         raise ValueError("Пароль должен содержать минимум 1 заглавную букву")
-    if (
-        not re.search(r"[a-zA-Z]", password)
-        or re.search(r"[^a-zA-Z$%&!:]", password)
-        and not re.search(r"\d", password)
-    ):
-        pass
     if not re.fullmatch(r"[a-zA-Z$%&!:]+", password):
         raise ValueError("Пароль может содержать только латиницу и символы $%&!:")
     if not re.search(r"[$%&!:]", password):
@@ -43,13 +37,19 @@ def validate_phone(phone: str) -> str:
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
+    expire = datetime.utcnow() + timedelta(
+        minutes=settings.access_token_expire_minutes
+    )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
 
 def decode_access_token(token: str) -> dict:
     try:
-        return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-    except JWTError:
+        return jwt.decode(
+            token,
+            settings.secret_key,
+            algorithms=[settings.algorithm],
+        )
+    except jwt.PyJWTError:
         return {}

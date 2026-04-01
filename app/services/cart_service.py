@@ -7,6 +7,7 @@ from app.models.product import Product
 
 
 async def get_or_create_cart(user_id: int, db: AsyncSession) -> Cart:
+    await db.execute(select(Cart))
     result = await db.execute(
         select(Cart)
         .where(Cart.user_id == user_id)
@@ -17,10 +18,10 @@ async def get_or_create_cart(user_id: int, db: AsyncSession) -> Cart:
         cart = Cart(user_id=user_id)
         db.add(cart)
         await db.commit()
-        await db.refresh(cart)
+        db.expire_all()
         result = await db.execute(
             select(Cart)
-            .where(Cart.id == cart.id)
+            .where(Cart.user_id == user_id)
             .options(selectinload(Cart.items).selectinload(CartItem.product))
         )
         cart = result.scalar_one()
@@ -39,7 +40,10 @@ async def add_items(
         quantity = item_data.get("quantity", 1)
 
         product_result = await db.execute(
-            select(Product).where(Product.id == product_id, Product.is_active == True)
+            select(Product).where(
+                Product.id == product_id,
+                Product.is_active == True,
+            )
         )
         product = product_result.scalar_one_or_none()
         if not product:
@@ -56,9 +60,15 @@ async def add_items(
         if existing:
             existing.quantity += quantity
         else:
-            db.add(CartItem(cart_id=cart.id, product_id=product_id, quantity=quantity))
+            new_item = CartItem(
+                cart_id=cart.id,
+                product_id=product_id,
+                quantity=quantity,
+            )
+            db.add(new_item)
 
     await db.commit()
+    db.expire_all()
     return await get_or_create_cart(user_id, db)
 
 
@@ -71,7 +81,10 @@ async def update_item(
     cart = await get_or_create_cart(user_id, db)
 
     result = await db.execute(
-        select(CartItem).where(CartItem.id == item_id, CartItem.cart_id == cart.id)
+        select(CartItem).where(
+            CartItem.id == item_id,
+            CartItem.cart_id == cart.id,
+        )
     )
     item = result.scalar_one_or_none()
     if not item:
@@ -83,6 +96,7 @@ async def update_item(
         item.quantity = quantity
 
     await db.commit()
+    db.expire_all()
     return await get_or_create_cart(user_id, db)
 
 
@@ -90,7 +104,10 @@ async def remove_item(user_id: int, item_id: int, db: AsyncSession) -> Cart:
     cart = await get_or_create_cart(user_id, db)
 
     result = await db.execute(
-        select(CartItem).where(CartItem.id == item_id, CartItem.cart_id == cart.id)
+        select(CartItem).where(
+            CartItem.id == item_id,
+            CartItem.cart_id == cart.id,
+        )
     )
     item = result.scalar_one_or_none()
     if not item:
@@ -98,14 +115,22 @@ async def remove_item(user_id: int, item_id: int, db: AsyncSession) -> Cart:
 
     await db.delete(item)
     await db.commit()
+    db.expire_all()
     return await get_or_create_cart(user_id, db)
 
 
 async def clear_cart(user_id: int, db: AsyncSession) -> Cart:
     cart = await get_or_create_cart(user_id, db)
-    for item in cart.items:
+
+    result = await db.execute(
+        select(CartItem).where(CartItem.cart_id == cart.id)
+    )
+    items = result.scalars().all()
+    for item in items:
         await db.delete(item)
+
     await db.commit()
+    db.expire_all()
     return await get_or_create_cart(user_id, db)
 
 
