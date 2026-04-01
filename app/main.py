@@ -5,6 +5,7 @@ from app.api.products import router as products_router
 from app.api.cart import router as cart_router
 from app.api.orders import router as orders_router
 from app.api.analytics import router as analytics_router
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(
     title="Shop API",
@@ -25,6 +26,8 @@ app.include_router(products_router)
 app.include_router(cart_router)
 app.include_router(orders_router)
 app.include_router(analytics_router)
+
+app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
 
 
 @app.get("/", tags=["health"])

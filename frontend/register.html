@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Регистрация — Merxio Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <div class="auth-title">Регистрация</div>
+    <div class="auth-subtitle">Создайте аккаунт для покупок</div>
+
+    <div id="alert" class="alert alert-danger hidden"></div>
+
+    <div class="form-group">
+      <label class="form-label">ФИО</label>
+      <input type="text" id="full_name" class="form-control"
+             placeholder="Иванов Иван Иванович">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" id="email" class="form-control"
+             placeholder="example@mail.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Телефон</label>
+      <input type="text" id="phone" class="form-control"
+             placeholder="+71234567890">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Пароль</label>
+      <input type="password" id="password" class="form-control"
+             placeholder="Мин. 8 символов, заглавная буква, спецсимвол">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Подтверждение пароля</label>
+      <input type="password" id="password_confirm" class="form-control"
+             placeholder="Повторите пароль">
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="handleRegister()">
+      Зарегистрироваться
+    </button>
+
+    <div class="text-muted mt-16" style="text-align:center">
+      Уже есть аккаунт? <a href="login.html">Войти</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  async function handleRegister() {
+    const alertEl = document.getElementById("alert");
+    alertEl.classList.add("hidden");
+
+    const data = {
+      full_name: document.getElementById("full_name").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      password: document.getElementById("password").value,
+      password_confirm: document.getElementById("password_confirm").value,
+    };
+
+    try {
+      await api.register(data);
+      window.location.href = "login.html";
+    } catch (e) {
+      alertEl.textContent = e.message;
+      alertEl.classList.remove("hidden");
+    }
+  }
+</script>
+</body>
+</html>

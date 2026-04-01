@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход — Merxio Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <div class="auth-title">Вход в аккаунт</div>
+    <div class="auth-subtitle">Введите email или телефон</div>
+
+    <div id="alert" class="alert alert-danger hidden"></div>
+
+    <div class="form-group">
+      <label class="form-label">Email или телефон</label>
+      <input type="text" id="login" class="form-control"
+             placeholder="example@mail.com или +71234567890">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Пароль</label>
+      <input type="password" id="password" class="form-control"
+             placeholder="Ваш пароль">
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="handleLogin()">
+      Войти
+    </button>
+
+    <div class="text-muted mt-16" style="text-align:center">
+      Нет аккаунта? <a href="register.html">Зарегистрироваться</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  if (getToken()) window.location.href = "index.html";
+
+  async function handleLogin() {
+    const login = document.getElementById("login").value.trim();
+    const password = document.getElementById("password").value;
+    const alert = document.getElementById("alert");
+    alert.classList.add("hidden");
+
+    try {
+      const data = await api.login({ login, password });
+      setToken(data.access_token);
+
+      const payload = JSON.parse(atob(data.access_token.split(".")[1]));
+      localStorage.setItem("is_admin", payload.is_admin ? "true" : "false");
+
+      window.location.href = payload.is_admin ? "admin.html" : "index.html";
+    } catch (e) {
+      alert.textContent = e.message;
+      alert.classList.remove("hidden");
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleLogin();
+  });
+</script>
+</body>
+</html>

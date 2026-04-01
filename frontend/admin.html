@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Админ — Merxio Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">Merxio Shop</a>
+    <ul class="navbar-nav">
+      <li><a href="index.html">Магазин</a></li>
+      <li><a href="#" onclick="logout()">Выйти</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1>Панель администратора</h1>
+  </div>
+
+  <div class="metrics" id="metrics"></div>
+
+  <div style="margin-top:32px">
+    <div class="flex-between">
+      <strong>Динамика продаж</strong>
+      <div style="display:flex;gap:8px">
+        <select id="group_by" class="form-control" onchange="loadDynamics()"
+                style="width:auto">
+          <option value="day">По дням</option>
+          <option value="week">По неделям</option>
+        </select>
+        <a class="btn btn-sm"
+           href="http://localhost:8000/analytics/export/xlsx"
+           target="_blank">Скачать Excel</a>
+        <a class="btn btn-sm"
+           href="http://localhost:8000/analytics/export/pdf"
+           target="_blank">Скачать PDF</a>
+      </div>
+    </div>
+    <div class="card mt-16">
+      <canvas id="dynamics-chart" height="100"></canvas>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px">
+    <div>
+      <strong>Топ-10 товаров</strong>
+      <div class="card mt-16">
+        <canvas id="top-chart" height="200"></canvas>
+      </div>
+    </div>
+    <div>
+      <strong>Продажи по категориям</strong>
+      <div class="card mt-16">
+        <canvas id="cat-chart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:32px">
+    <div class="flex-between">
+      <strong>Товары</strong>
+      <button class="btn btn-primary btn-sm"
+              onclick="openProductForm()">+ Добавить</button>
+    </div>
+
+    <div class="card mt-16" id="product-form-wrap" style="display:none;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Название</label>
+          <input type="text" id="p-name" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Категория</label>
+          <input type="text" id="p-category" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Цена</label>
+          <input type="number" id="p-price" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Описание</label>
+          <input type="text" id="p-desc" class="form-control">
+        </div>
+      </div>
+      <input type="hidden" id="p-id">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="saveProduct()">Сохранить</button>
+        <button class="btn btn-sm" onclick="closeProductForm()">Отмена</button>
+      </div>
+    </div>
+
+    <div class="card mt-16">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Название</th>
+            <th>Категория</th>
+            <th>Цена</th>
+            <th>Статус</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="products-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:32px">
+    <strong>Заказы</strong>
+    <div class="card mt-16">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Дата</th>
+            <th>Пользователь</th>
+            <th>Статус</th>
+            <th class="text-right">Сумма</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="orders-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  requireAdmin();
+
+  let dynamicsChart, topChart, catChart;
+
+  async function loadMetrics() {
+    const s = await api.getSummary();
+    document.getElementById("metrics").innerHTML = `
+      <div class="metric-card">
+        <div class="metric-label">Выручка</div>
+        <div class="metric-value">${s.total_revenue.toLocaleString()} ₽</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Заказов</div>
+        <div class="metric-value">${s.total_orders}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Средний чек</div>
+        <div class="metric-value">${s.avg_check.toLocaleString()} ₽</div>
+      </div>`;
+  }
+
+  async function loadDynamics() {
+    const group_by = document.getElementById("group_by").value;
+    const data = await api.getDynamics({ group_by });
+
+    const labels = data.map((d) => d.period);
+    const revenue = data.map((d) => d.revenue);
+
+    if (dynamicsChart) dynamicsChart.destroy();
+    dynamicsChart = new Chart(
+      document.getElementById("dynamics-chart"),
+      {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Выручка",
+            data: revenue,
+            borderColor: "#1d9e75",
+            backgroundColor: "#1d9e7520",
+            fill: true,
+            tension: 0.4,
+          }],
+        },
+        options: { plugins: { legend: { display: false } } },
+      }
+    );
+  }
+
+  async function loadTopProducts() {
+    const data = await api.getTopProducts();
+    if (topChart) topChart.destroy();
+    topChart = new Chart(
+      document.getElementById("top-chart"),
+      {
+        type: "bar",
+        data: {
+          labels: data.map((d) => d.product_name),
+          datasets: [{
+            label: "Выручка",
+            data: data.map((d) => d.total_revenue),
+            backgroundColor: "#1d9e75",
+          }],
+        },
+        options: {
+          indexAxis: "y",
+          plugins: { legend: { display: false } },
+        },
+      }
+    );
+  }
+
+  async function loadCategories() {
+    const data = await api.getCategories();
+    if (catChart) catChart.destroy();
+    catChart = new Chart(
+      document.getElementById("cat-chart"),
+      {
+        type: "doughnut",
+        data: {
+          labels: data.map((d) => d.category),
+          datasets: [{
+            data: data.map((d) => d.total_revenue),
+            backgroundColor: [
+              "#1d9e75", "#5dcaa5", "#9fe1cb",
+              "#534ab7", "#7f77dd", "#afa9ec",
+            ],
+          }],
+        },
+      }
+    );
+  }
+
+  async function loadProducts() {
+    const products = await api.getProducts();
+    document.getElementById("products-body").innerHTML = products.map((p) => `
+      <tr>
+        <td>${p.name}</td>
+        <td class="text-muted">${p.category || "—"}</td>
+        <td>${p.price.toLocaleString()} ₽</td>
+        <td>
+          <span class="badge ${p.is_active ? "badge-success" : "badge-danger"}">
+            ${p.is_active ? "Активен" : "Скрыт"}
+          </span>
+        </td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="editProduct(${p.id},'${p.name}',${p.price},'${p.category||""}','${p.description||""}')">
+            Изменить
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">
+            Удалить
+          </button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  async function loadOrders() {
+    const orders = await api.getOrders();
+    const statuses = ["pending","confirmed","shipped","delivered","cancelled"];
+    document.getElementById("orders-body").innerHTML = orders.map((o) => `
+      <tr>
+        <td>#${o.id}</td>
+        <td>${new Date(o.created_at).toLocaleDateString("ru-RU")}</td>
+        <td class="text-muted">ID ${o.user_id}</td>
+        <td>
+          <select class="form-control" style="width:auto;font-size:13px"
+                  onchange="changeStatus(${o.id}, this.value)">
+            ${statuses.map((s) =>
+              `<option value="${s}" ${s === o.status ? "selected" : ""}>${s}</option>`
+            ).join("")}
+          </select>
+        </td>
+        <td class="text-right">${o.total_price.toLocaleString()} ₽</td>
+        <td></td>
+      </tr>
+    `).join("");
+  }
+
+  async function changeStatus(orderId, status) {
+    await api.updateOrderStatus(orderId, status);
+    loadOrders();
+  }
+
+  function openProductForm() {
+    document.getElementById("product-form-wrap").style.display = "block";
+    document.getElementById("p-id").value = "";
+    document.getElementById("p-name").value = "";
+    document.getElementById("p-price").value = "";
+    document.getElementById("p-category").value = "";
+    document.getElementById("p-desc").value = "";
+  }
+
+  function closeProductForm() {
+    document.getElementById("product-form-wrap").style.display = "none";
+  }
+
+  function editProduct(id, name, price, category, desc) {
+    document.getElementById("product-form-wrap").style.display = "block";
+    document.getElementById("p-id").value = id;
+    document.getElementById("p-name").value = name;
+    document.getElementById("p-price").value = price;
+    document.getElementById("p-category").value = category;
+    document.getElementById("p-desc").value = desc;
+  }
+
+  async function saveProduct() {
+    const id = document.getElementById("p-id").value;
+    const data = {
+      name: document.getElementById("p-name").value,
+      price: parseInt(document.getElementById("p-price").value),
+      category: document.getElementById("p-category").value || null,
+      description: document.getElementById("p-desc").value || null,
+    };
+    if (id) {
+      await api.updateProduct(id, data);
+    } else {
+      await api.createProduct(data);
+    }
+    closeProductForm();
+    loadProducts();
+  }
+
+  async function deleteProduct(id) {
+    if (!confirm("Удалить товар?")) return;
+    await api.deleteProduct(id);
+    loadProducts();
+  }
+
+  loadMetrics();
+  loadDynamics();
+  loadTopProducts();
+  loadCategories();
+  loadProducts();
+  loadOrders();
+</script>
+</body>
+</html>
