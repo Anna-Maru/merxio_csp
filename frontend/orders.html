@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои заказы — Merxio Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">Merxio Shop</a>
+    <ul class="navbar-nav">
+      <li><a href="index.html">Каталог</a></li>
+      <li><a href="#" onclick="logout()">Выйти</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1>Мои заказы</h1>
+  </div>
+
+  <div class="card mt-24">
+    <table class="table" id="orders-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Дата</th>
+          <th>Статус</th>
+          <th>Товары</th>
+          <th class="text-right">Сумма</th>
+        </tr>
+      </thead>
+      <tbody id="orders-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  requireAuth();
+
+  const statusLabels = {
+    pending: ["В обработке", "badge-warning"],
+    confirmed: ["Подтверждён", "badge-success"],
+    shipped: ["Отправлен", "badge-success"],
+    delivered: ["Доставлен", "badge-success"],
+    cancelled: ["Отменён", "badge-danger"],
+  };
+
+  async function loadOrders() {
+    const orders = await api.getOrders();
+    const tbody = document.getElementById("orders-body");
+
+    if (!orders.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-muted" style="text-align:center;padding:24px">
+            Заказов пока нет
+          </td>
+        </tr>`;
+      return;
+    }
+
+    tbody.innerHTML = orders.map((o) => {
+      const [label, cls] = statusLabels[o.status] || [o.status, ""];
+      const items = o.items.map((i) =>
+        `${i.product_name} × ${i.quantity}`
+      ).join(", ");
+      const date = new Date(o.created_at).toLocaleDateString("ru-RU");
+      return `
+        <tr>
+          <td>#${o.id}</td>
+          <td>${date}</td>
+          <td><span class="badge ${cls}">${label}</span></td>
+          <td class="text-muted">${items}</td>
+          <td class="text-right">${o.total_price.toLocaleString()} ₽</td>
+        </tr>`;
+    }).join("");
+  }
+
+  loadOrders();
+</script>
+</body>
+</html>
